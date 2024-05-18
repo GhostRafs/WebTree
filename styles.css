@@ -1,0 +1,13 @@
+.node {
+    margin: 5px;
+    padding: 10px;
+    border: 2px solid #333;
+    display: inline-block;
+    border-radius: 50%;
+}
+
+.line {
+    width: 2px;
+    background: black;
+    position: absolute;
+}
