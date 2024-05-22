@@ -12,7 +12,12 @@ class Node {
 class AVLTree {
     constructor() {
         this.root = null;
-        this.nodeDistance = 600;  // Aumentar a distância entre os nós para melhor visualização
+        this.nodeDistance = 600; 
+    }
+
+    clear() {
+        this.root = null;
+        this.updateView();
     }
 
     getHeight(node) {
@@ -50,47 +55,67 @@ class AVLTree {
 
     insert(node, value, x, y, level = 1) {
         if (!node) return new Node(value, x, y);
+
         if (value < node.value) {
             node.left = this.insert(node.left, value, x - (this.nodeDistance / (level + 1.5)), y + 60, level + 1);
         } else if (value > node.value) {
             node.right = this.insert(node.right, value, x + (this.nodeDistance / (level + 1.5)), y + 60, level + 1);
         } else {
-            return node;  // Duplicate values not allowed
+            return node; 
         }
-        this.updateHeight(node);
-        return this.balance(node, value);
-    }
-    
-    
 
-    balance(node, value) {
+        this.updateHeight(node);
+        return this.balance(node);
+    }
+
+    balance(node) {
         let balance = this.getBalanceFactor(node);
-        // Right Rotation
-        if (balance > 1 && value < node.left.value) {
+
+        if (balance > 1 && this.getBalanceFactor(node.left) >= 0) {
             return this.rotateRight(node);
         }
-        // Left Rotation
-        if (balance < -1 && value > node.right.value) {
-            return this.rotateLeft(node);
-        }
-        // Left-Right Rotation
-        if (balance > 1 && value > node.left.value) {
+        if (balance > 1 && this.getBalanceFactor(node.left) < 0) {
             node.left = this.rotateLeft(node.left);
             return this.rotateRight(node);
         }
-        // Right-Left Rotation
-        if (balance < -1 && value < node.right.value) {
+        if (balance < -1 && this.getBalanceFactor(node.right) <= 0) {
+            return this.rotateLeft(node);
+        }
+        if (balance < -1 && this.getBalanceFactor(node.right) > 0) {
             node.right = this.rotateRight(node.right);
             return this.rotateLeft(node);
         }
+
         return node;
     }
 
     add(value) {
-        this.root = this.insert(this.root, value, 600, 20);
+        if (!this.root || value < this.root.value) {
+            const newRoot = new Node(value, window.innerWidth / 2, 20);
+            if (this.root) {
+                newRoot.left = this.root;
+                this.updatePositions(newRoot, window.innerWidth / 2, 20, 1);
+            }
+            this.root = newRoot;
+        } else {
+            this.root = this.insert(this.root, value, window.innerWidth / 2, 20);
+            this.updatePositions(this.root, window.innerWidth / 2, 20, 1);
+        }
         this.updateView();
     }
 
+    updatePositions(node, x, y, level) {
+        if (node !== null) {
+            node.x = x;
+            node.y = y;
+            if (node.left !== null) {
+                this.updatePositions(node.left, x - (this.nodeDistance / (level + 1.5)), y + 60, level + 1);
+            }
+            if (node.right !== null) {
+                this.updatePositions(node.right, x + (this.nodeDistance / (level + 1.5)), y + 60, level + 1);
+            }
+        }
+    }
 
     updateView() {
         const canvas = document.getElementById('avlCanvas');
@@ -116,16 +141,15 @@ class AVLTree {
                 context.stroke();
             }
             context.beginPath();
-            context.arc(node.x, node.y, 100, 0, 2 * Math.PI); // Aumentar o tamanho dos nós
+            context.arc(node.x, node.y, 50, 0, 2 * Math.PI);
             context.fill();
             context.stroke();
             context.fillStyle = "white";
             context.textAlign = "center";
-            context.font = "50px Arial"; // Aumentar o tamanho do texto
+            context.font = "50px Arial";
             context.fillText(node.value, node.x, node.y + 6);
-            context.font = "20px Arial"; // Tamanho
-            context.fillText(`H:${node.height} B:${this.getBalanceFactor(node)}`, node.x, node.y - 30); // Mostra altura e balanceamento
             context.fillStyle = "black";
+            context.fillText(`H:${node.height} B:${this.getBalanceFactor(node)}`, node.x, node.y - 30);
 
             this.drawNode(node.left, context);
             this.drawNode(node.right, context);
@@ -134,6 +158,7 @@ class AVLTree {
 }
 
 const avl = new AVLTree();
+
 function addValue() {
     const value = parseInt(document.getElementById('valueInput').value);
     if (!isNaN(value)) {
@@ -144,10 +169,9 @@ function addValue() {
     }
 }
 
-function Clear(){ //não funciona ainda
-        this.root = null;
-        this.updateView();
-    }
+function clearTree() {
+    avl.clear();
+}
 
 window.onload = function() {
     const canvas = document.getElementById('avlCanvas');
